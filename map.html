@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+<head>
+
+ <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+ <script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.js'></script>
+ <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+ <script src="infobox.js"></script>
+ <script src="app.js"></script>
+<style>
+	/* works landing page */
+.google-map-module {background: #f7f7f7; border: 1px solid #d4d4d4; border-top: 3px solid #0083a9; margin-bottom: 35px; margin-top: 45px; min-height: 433px; position: relative; width: 958px;}
+
+
+.google-map-link-panel {padding: 13px 7px 7px 7px; width: 309px;}
+.google-map-link-panel h2 {color: #0083a9; font-size: 1em; left: -1px; position: absolute; top: -25px;}
+.google-map-link-panel h3 {font-size: 0.75em; padding: 17px 0 5px 0;}
+.google-map-link-panel .major-works-link {background: url("/files/9/268/pin-red.png") no-repeat right 11px; display: inline-block;  padding-right: 40px;}
+.construction-link-panel .playground-works-link {background: url(/files/9/268/pin-yellow.png) no-repeat right 11px; display: inline-block; padding-right: 40px;}
+
+.google-map-link-panel  ul {border-top: 1px solid #d4d4d4; list-style-type: none; margin: 0; padding: 0;}
+.google-map-link-panel  ul  a {display: inline-block; padding: 3px 0 4px 0;}
+
+
+
+#googleMap {position: absolute; right: -1px; top: -1px; width: 635px;}
+</style> 	
+</head>
+<body>
+
+<div class="google-map-module">
+
+  <div class="google-map-link-panel">
+    <h2>Current Construction</h2>    
+  </div>
+    
+  <a href="#" class="enlarge-map" id='contractButton' style='display:none'>Shink Map</a>
+  <a href="#" class="enlarge-map" id='expandButton'>Enlarge Map</a>
+      
+    <div id="googleMap" class="google-map-container" style='width:635px; height:433px;'></div> 
+    
+    <!-- expands to width 960px and height 655px -->
+    <!-- google-map-container -->
+ 
+</div>  
+
+<script>
+
+$(document).ready(function(){
+    
+	//Variables
+  var args, 
+    mapMarkers;
+    
+    
+  //Map properties
+  args = {
+        expandButton : document.getElementById('expandButton'),
+        contractButton : document.getElementById('contractButton'),
+        rssMarkers: ['http://localhost:8888/sscMapManager/feed.xml']
+    };
+    
+  //Load Map
+  mapManager(document.getElementById('googleMap'),args, function(myMap){
+  
+  mapMarkers = myMap.markers;
+  //mayLayers = myMap.layers  
+  
+    //When map is loaded
+    var i, x, y, z;
+      
+      //Build list of links
+    $('.google-map-link-panel').append('<h3>Markers</h3><ul style="list-style-type:none">');
+    
+        //Loop through all layers
+    //for (y in myMap.layers){
+  for(y=0, z=myMap.layers.length;y<z;y+=1){
+     $('.google-map-link-panel').append('<ul id="container_' + myMap.layers[y].replace(/ /g,'') + '" class="layerContainer" style="list-display-type:none">');
+     $('#container_' + myMap.layers[y].replace(/ /g,'')).append('<li><h3><a href="#" class="layer_toggle_button" id="' + myMap.layers[y].replace(/ /g,'') + '">' + myMap.layers[y] + '</a> - <a href="#" class="layer_plot_button" id=' + myMap.layers[y].replace(/ /g,'') + '>Hide</a></h3></li>');
+    //$('.google-map-link-panel').append('<h3><a href="#" class="layer_toggle_button" id="' + myMap.layers[y].replace(/ /g,'') + '">' + myMap.layers[y] + '</a></h3>');
+      $('#container_' + myMap.layers[y].replace(/ /g,'')).append('<ul style="list-style-type:none" class="layerHeading" id="list_' + myMap.layers[y].replace(/ /g,'') + '">');
+    
+    //Loop through every marker
+    for (i in myMap.markers){
+      if (myMap.markers[i].layerId === myMap.layers[y]){
+        
+      //Create a link. This will open the infoBox on hover
+      $('#list_' + myMap.layers[y].replace(/ /g,'')).append('<li class="' + myMap.layers[y].replace(/ /g,'') + '"><a href="#" class="map_plot_button" id="' + myMap.markers[i].pageId + '">' + myMap.markers[i].pageName + '</a></li>');
+      }
+      
+      //$('.google-map-link-panel').append('</ul>');
+      
+      }
+      
+}
+             
+             
+      //End list of marker links
+    //$('.google-map-link-panel').append('</ul>');
+      
+      //Begin list of layer links
+      $('.google-map-link-panel').append('<h3>Layers</h3><ul id="layerList">');
+    
+    //Loop through all layers
+    for (x in myMap.layers){
+        $('#layerList').append('<li><a href="#" class="layer_plot_button" id="' + myMap.layers[x].name + '">' + myMap.layers[x].name + '</a></li>');
+        
+      }
+      
+    //End list of layer links
+      $('.google-map-link-panel').append('</ul>');
+  
+    //Click event listener for layer links
+	
+    $('.layer_plot_button').click(function(e){
+		
+		console.log(e.currentTarget.id);
+		
+      //variables
+      var i, x;
+      console.log(myMap.markers);
+      //Loop through all the markers
+      for (i in myMap.markers){
+        
+		console.log(myMap.markers[i].layerId.replace(/ /g,''));
+		console.log(myMap.markers[i].layerId + ' vs ' + e.currentTarget.id);
+		
+        //Identify markers that match the layer button clicked
+        if (myMap.markers[i].layerId.replace(/ /g,'') == e.currentTarget.id){
+          
+          //Check if visible or not and toggle.
+          if(myMap.markers[i].marker.visible){
+            myMap.markers[i].marker.setVisible(false);
+          }else{
+            myMap.markers[i].marker.setVisible(true);
+          }
+          
+          console.log(myMap.markers[i].marker.visible);
+          console.log(myMap.markers[i].marker);
+        }
+        
+      }
+      
+      return false;
+      
+      });        
+			
+			var activeList;
+			
+	$('.layerContainer').hover(
+		function(e){
+			
+			activeList = '#list_' + e.currentTarget.id.replace('container_','');
+			console.log('hover in!!');
+			console.log(e.currentTarget.id);
+		
+			$(activeList).toggle();
+		
+			return false;
+			//$('.' + e.currentTarget.id).each(function(){
+			
+				//$(this).css('display','none');
+		
+			//});
+		
+		}, 
+		function(e){
+			
+			console.log('HOVER OUT!!');
+			console.log(activeList);
+			
+			$(activeList).toggle();
+		
+			return false	
+		}
+	);	
+	
+     //Hover event of every map_plot_button class link
+     $('.map_plot_button').hover(function(e){
+  
+          //Use the id of the hovered link to build the id of its 
+          //corresponding map marker
+          var x = "a" + e.currentTarget.id.replace(/-/g,'') + "marker";
+
+          //Open the markers info window
+          google.maps.event.trigger(myMap.markers[x].marker, 'click');
+            
+     }, function(e){
+     
+        var x = "a" + e.currentTarget.id.replace(/-/g,'') + "marker";
+       myMap.markers[x].marker.infobox.close();
+       
+       
+     });   
+
+	$('.layerHeading').each(function(){
+	
+		$(this).toggle();
+	
+	});
+   
+});
+
+
+
+  $('#expandButton').click(function(){$('#expandButton').toggle();$('#contractButton').toggle();});
+  $('#contractButton').click(function(){$('#expandButton').toggle();$('#contractButton').toggle();});
+     
+ 
+    
+});
+  
+</script>
+
+
+	
+</body>	
+</html>
+
+
+
