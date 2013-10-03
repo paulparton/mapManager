@@ -1,0 +1,332 @@
+<html>
+<head>
+</head>
+<body>
+
+<script>
+	
+	var mapManager = function(mapContainer, args, callback){
+		
+		/**
+		 * Set up object
+		 */
+
+		//Check for required arguments
+		if (!mapContainer){
+			return(false);
+		}
+		
+		//If no arguments were supplied, create an empty object
+		if(!args){
+			args = {};
+		}
+		
+		//Remove the need to use the new keyword
+		if(!(this instanceof mapManager)){    				
+			return new mapManager(mapContainer, args, callback);
+		}
+		
+		/**
+		 * Prepare default arguments and create map manager properties object
+		 */
+		
+		//Add map container to arguments
+		args.mapContainer = mapContainer;
+		
+		//Calculate default map dimensions from container
+    	this.defaultArgs.containerSize = {
+      		width: args.mapContainer.style.width,
+      		height: args.mapContainer.style.height,
+      		largeWidth: parseInt(args.mapContainer.style.width, null) * 2,
+      		largeHeight: parseInt(args.mapContainer.style.height, null) * 2
+    	};
+		
+		this.defaultArgs.largeMapSize = {
+	        height: this.defaultArgs.containerSize.largeHeight + 'px',
+	        width: this.defaultArgs.containerSize.largeWidth + 'px'
+	     };
+	     
+		this.defaultArgs.smallMapSize = {
+	        height: this.defaultArgs.containerSize.height,
+	        width: this.defaultArgs.containerSize.width
+		};
+		
+		this.defaultArgs.containerWidth = this.defaultArgs.containerSize.width;
+		this.defaultArgs.containerHeight = this.defaultArgs.containerSize.height;
+			      	      	
+		//Merge provided arguments with defaults
+		this.mapProperties = this.parseArguments(args);
+
+		/**
+		 * Create the map and markers
+		 */		
+		 
+		//Launch map
+		this.mapProperties.map = this.startMap(this.mapProperties);
+		
+		//Load markers and layers
+		this.loadMarkers(this.properties, function(markers, layers){
+			
+			//Return callback
+			
+		});	
+		
+			
+    			
+	};
+	
+	mapManager.prototype.startMap = function(properties){
+		
+		//Variables
+		var mapConfig,
+			map;
+		
+		//Map configuration object			
+		mapConfig = {
+			center: new google.maps.LatLng(properties.mapLat, properties.mapLng),
+      		zoom: 11,
+      		mapTypeId: google.maps.MapTypeId.ROADMAP
+		};
+		
+		//Create map
+		map = new google.maps.Map(properties.mapContainer, mapProp);
+		
+		//Return new map
+		return map;
+		
+	};
+	
+	mapManager.prototype.loadMakers = function(properties, callback){
+		
+		//variables
+		var arrSources;
+		
+		//get map marker sources
+		arrSources = properties.rssSources;
+		
+		//If source is a single object add it to an array				
+		if (!properties.rssSources instanceof Array){
+			
+			arrSources[0] = properties.rssSources;
+			
+		}else{
+		
+			arrSources = properties.rssSources;
+			
+		}
+		
+		//Loop through all the sources
+		
+		//Loop through all the items
+		
+		//Create marker, store layer information
+		
+		//Return callback
+		
+		//..So far no jQuery...include just for $get??
+		
+	};
+	
+	//Combine supplied arguments with defaults
+	mapManager.prototype.parseArguments = function(userArgs){
+		
+		//Variables
+		var mapProperties, 
+			key;
+		
+		//Create a copy of the default arguments object to overwrite with supplied arguments
+		mapProperties = this.defaultArgs;
+		
+		//Loop through the default properties
+		for (key in userArgs){
+			
+			//Check the property belongs to the default properties and not its prototype
+			if (userArgs.hasOwnProperty(key)){
+			
+				//If the property has been provided by the user
+				if (typeof userArgs[key] !== undefined) {
+					
+					mapProperties[key] = userArgs[key];
+					
+				}
+				
+			}
+			
+		}
+		
+		//Return the combined map properties
+		return mapProperties;
+		
+	};
+	
+	//Default arguments
+	mapManager.prototype.defaultArgs = {
+	
+		//Default values for optional arguments
+		mapLat: -34.08346933637405,
+	    mapLng: 151.02527617884334,
+		rssUrl: '',
+	    rssMarkers: undefined,
+		arrMarkers: undefined,
+		mapSize: undefined,
+		expandButton: undefined,
+		contractButton: undefined,
+		mapContainer: undefined
+
+    };
+		
+	/**
+	 * General reusable functions
+	 */		
+	//Function to remove duplicates from an array
+	mapManager.prototype.unique = function(origArr) {
+		
+		//Variables
+		var arrCleaned = [],
+        	found,
+        	i, o, 
+        	x, y;
+        
+        //Loop through array to be cleaned
+    	for (i=0, o=origArr.length; i<o; i+=1) {
+    		
+    		//Reset testing variable
+        	found = undefined;
+        	
+        	//Compare each item to the cleaned array
+        	for (x=0, y=arrCleaned.length; x<y; x+=1){
+				
+				console.log(origArr[i] + ' vs ' + arrCleaned[x]);
+				
+				//If a duplicate item is found
+				if (origArr[i] === arrCleaned[x]) {
+					
+					//Indicate that it is a duplicate 
+              		found = true;
+              		break;
+              		
+            	}
+            	
+        	}
+        	
+        	//If an item is not a duplicate
+        	if (!found){
+        		
+        		//Add it to the cleaned array
+        		arrCleaned.push(origArr[i]);
+        		
+        	}     
+        	
+		}
+		
+		//Return the cleaned array
+   		return arrCleaned;
+   		
+	};
+	
+	mapManager.prototype.getLayer = function(program){
+		
+		//Category grouping definition. This is implimentation specific and shouldn't be here.
+		var categoryFix = {
+			Roads_and_carparks: [
+				"Traffic Engineering",
+				"Traffic Management",
+				"Developer Traffic Contributiions",
+				"Carparks in Reserves",
+				"Shire Entry Signs",
+				"Bridge Maintenance",
+				"Carpark Construction",
+				"Menai Road Landscaping",
+				"Roads Construction",
+				"Regional Roads",
+				"Roads to Recovery"
+				
+			],
+			Drainage_and_water: [
+				"Drainage Construction",
+				"Stormwater Mtce",
+				"Stormwater Re",
+				"Water Quality",
+				"Waterways Projects"
+			],
+			Footpaths_and_cycleways:[
+				"Cycleways Construction",
+				"Shopping Centre Upgrades",
+				"Disabled Access Works",
+				"Pavement Rehabilitation",
+				"Footpath Program"
+			],
+			Parks_and_playgrounds:[
+				"Playground Equipment",
+				"Parks Capital",
+				"Netball Courts",
+				"Tennis Courts",
+				"Sporting Facilities"
+			],
+			Council_buildings:[
+				"Art Galleries",
+				"Buildings on Ovals",
+				"Buildings on Passive Reserves",
+				"Community Halls",
+				"Golf Driving Range",
+				"Leisure Facilities",
+				"Depots",
+				"Malls Management",
+				"Scout Halls"
+			],
+			Public_toilets:[
+				"Public Toilets",
+				"Public Toilets"
+			],
+			Test:[
+				"Test"
+			],
+			other:[
+				"Works in Conjunction",
+				"Preventative Maintenance",
+				"Community Leases",
+				"Emergency Services",
+				"Lucas Heights Projects",
+				"WASIP JOBS",
+				"Green Hills Development"
+			]	
+			
+		},
+		i, o, key;
+		
+		//Loop through every category grouping array
+		for(key in categoryFix){
+			
+			//Loop through the contents of the array
+			for (i=0, o=categoryFix[key].length; i<o; i+=1){
+				
+				//Identify the category the provided program belongs to	
+				if (categoryFix[key][i] === program){
+					
+					//Return the name of the grouping (with spaces intact)
+					return(key.replace(/\_/g,' '));
+					
+				}
+				
+			}
+		
+		}
+		
+		//If no matching category is found, return other
+		return('other');
+		
+	};
+	
+		
+	var test = mapManager(document.createElement('div'),{rssUrl:'hamBone'});
+	
+	console.log(test.mapProperties);
+	
+	//console.log(test);
+	//Tests
+	//console.log(test.getLayer("Tennis Courts"));
+	//console.log(test.unique(["first", "first", "second", "second", "third", "third"]));
+	
+</script>	
+</body>	
+</html>
