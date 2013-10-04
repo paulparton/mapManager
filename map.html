@@ -43,17 +43,9 @@ $(document).ready(function(){
   
     //When map is loaded
     var i, x, y, z, docFrag, containerList, liControls, liLayers, liLayer, layerList, markerList, layerName;
-      
-      //Build list of links
-		//$('.google-map-link-panel').append('<h3>Markers</h3><ul style="list-style-type:none">');
-    
-        //Loop through all layers
-		//for (y in myMap.layers){
-	//docFrag = document.createDocumentFragment();
+
 	containerList = document.createElement('ul');
-	//$(containerList).append('AAARRRGGH!!!');
-	//$(docFrag).append($(containerList));
-	
+
 	$('.google-map-link-panel').append($(containerList));
 	 
 	for(y=0, z=myMap.layers.length;y<z;y+=1){

@@ -1,332 +1,128 @@
 <html>
 <head>
+	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+	<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+	<script src="js/mapManager.js"></script>
+	<script src="js/bootstrap.js"></script>
+	    <link href="css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      
+    </style>
+    <link href="css/bootstrap-responsive.css" rel="stylesheet">
+    
+	<style>
+		ul {
+			list-style-type: none;
+			padding: 5px;
+			margin: 0px;
+		}
+	</style>
+
 </head>
-<body>
+<body>	
 
-<script>
+<div class="container">
+	<div class="row">
+		<div class='span4'>
+			<div id='layerBarContainer' style='width:100%;background-color:#f1f1f1'></div>
+		</div>	
+		<div class='span8'>
+			<div id='mapContainer' style='width:600px;height:300px;'></div>
+		</div>
+	</div>
+</div>	
+	<script>	
 	
-	var mapManager = function(mapContainer, args, callback){
-		
-		/**
-		 * Set up object
-		 */
-
-		//Check for required arguments
-		if (!mapContainer){
-			return(false);
-		}
-		
-		//If no arguments were supplied, create an empty object
-		if(!args){
-			args = {};
-		}
-		
-		//Remove the need to use the new keyword
-		if(!(this instanceof mapManager)){    				
-			return new mapManager(mapContainer, args, callback);
-		}
-		
-		/**
-		 * Prepare default arguments and create map manager properties object
-		 */
-		
-		//Add map container to arguments
-		args.mapContainer = mapContainer;
-		
-		//Calculate default map dimensions from container
-    	this.defaultArgs.containerSize = {
-      		width: args.mapContainer.style.width,
-      		height: args.mapContainer.style.height,
-      		largeWidth: parseInt(args.mapContainer.style.width, null) * 2,
-      		largeHeight: parseInt(args.mapContainer.style.height, null) * 2
-    	};
-		
-		this.defaultArgs.largeMapSize = {
-	        height: this.defaultArgs.containerSize.largeHeight + 'px',
-	        width: this.defaultArgs.containerSize.largeWidth + 'px'
-	     };
-	     
-		this.defaultArgs.smallMapSize = {
-	        height: this.defaultArgs.containerSize.height,
-	        width: this.defaultArgs.containerSize.width
-		};
-		
-		this.defaultArgs.containerWidth = this.defaultArgs.containerSize.width;
-		this.defaultArgs.containerHeight = this.defaultArgs.containerSize.height;
-			      	      	
-		//Merge provided arguments with defaults
-		this.mapProperties = this.parseArguments(args);
-
-		/**
-		 * Create the map and markers
-		 */		
-		 
-		//Launch map
-		this.mapProperties.map = this.startMap(this.mapProperties);
-		
-		//Load markers and layers
-		this.loadMarkers(this.properties, function(markers, layers){
+		var myMap = mapManager(document.getElementById('mapContainer'),{rssUrl:'http://localhost:8888/sscmapmanager/feed.xml'}, function(){
 			
-			//Return callback
-			
-		});	
-		
-			
+			myMap.loadLayerBar(document.getElementById('layerBarContainer'), function(){
     			
-	};
-	
-	mapManager.prototype.startMap = function(properties){
-		
-		//Variables
-		var mapConfig,
-			map;
-		
-		//Map configuration object			
-		mapConfig = {
-			center: new google.maps.LatLng(properties.mapLat, properties.mapLng),
-      		zoom: 11,
-      		mapTypeId: google.maps.MapTypeId.ROADMAP
-		};
-		
-		//Create map
-		map = new google.maps.Map(properties.mapContainer, mapProp);
-		
-		//Return new map
-		return map;
-		
-	};
-	
-	mapManager.prototype.loadMakers = function(properties, callback){
-		
-		//variables
-		var arrSources;
-		
-		//get map marker sources
-		arrSources = properties.rssSources;
-		
-		//If source is a single object add it to an array				
-		if (!properties.rssSources instanceof Array){
-			
-			arrSources[0] = properties.rssSources;
-			
-		}else{
-		
-			arrSources = properties.rssSources;
-			
-		}
-		
-		//Loop through all the sources
-		
-		//Loop through all the items
-		
-		//Create marker, store layer information
-		
-		//Return callback
-		
-		//..So far no jQuery...include just for $get??
-		
-	};
-	
-	//Combine supplied arguments with defaults
-	mapManager.prototype.parseArguments = function(userArgs){
-		
-		//Variables
-		var mapProperties, 
-			key;
-		
-		//Create a copy of the default arguments object to overwrite with supplied arguments
-		mapProperties = this.defaultArgs;
-		
-		//Loop through the default properties
-		for (key in userArgs){
-			
-			//Check the property belongs to the default properties and not its prototype
-			if (userArgs.hasOwnProperty(key)){
-			
-				//If the property has been provided by the user
-				if (typeof userArgs[key] !== undefined) {
-					
-					mapProperties[key] = userArgs[key];
-					
-				}
-				
-			}
-			
-		}
-		
-		//Return the combined map properties
-		return mapProperties;
-		
-	};
-	
-	//Default arguments
-	mapManager.prototype.defaultArgs = {
-	
-		//Default values for optional arguments
-		mapLat: -34.08346933637405,
-	    mapLng: 151.02527617884334,
-		rssUrl: '',
-	    rssMarkers: undefined,
-		arrMarkers: undefined,
-		mapSize: undefined,
-		expandButton: undefined,
-		contractButton: undefined,
-		mapContainer: undefined
+    			//Show and hide layer list
+                $('.layer_toggle_button').click(function(e){
 
-    };
+                    activeList = '#list_' + e.currentTarget.id.replace('container_','');
+					console.log($(activeList));
+					
+                    $(activeList).slideToggle();
+
+                    return false    
+                    
+                }); 
+                
+                var x;
+				//Hover event of every map_plot_button class link
+     			$('.map_plot_button').hover(function(e){
+  					
+  					
+          			//Use the id of the hovered link to build the id of its 
+          			//corresponding map marker
+          			x = "a" + e.currentTarget.id.replace(/-/g,'') + "marker";
+					
+		         	 //Open the markers info window
+        		  	google.maps.event.trigger(myMap.markers[x].marker, 'click');
+            
+				}, function(e){
+     
+        			//var x = "a" + e.currentTarget.id.replace(/-/g,'') + "marker";
+       				myMap.markers[x].marker.infobox.close();
+       
+       
+     			}); 
+     			 
+			});	
+			
+			    //Click event listener for layer links
+	
+    $('.layer_plot_button').click(function(e){
 		
-	/**
-	 * General reusable functions
-	 */		
-	//Function to remove duplicates from an array
-	mapManager.prototype.unique = function(origArr) {
+		console.log(e.currentTarget.id);
 		
-		//Variables
-		var arrCleaned = [],
-        	found,
-        	i, o, 
-        	x, y;
+      //variables
+      var i, x;
+      console.log(myMap.markers);
+      //Loop through all the markers
+      for (i in myMap.markers){
         
-        //Loop through array to be cleaned
-    	for (i=0, o=origArr.length; i<o; i+=1) {
-    		
-    		//Reset testing variable
-        	found = undefined;
-        	
-        	//Compare each item to the cleaned array
-        	for (x=0, y=arrCleaned.length; x<y; x+=1){
-				
-				console.log(origArr[i] + ' vs ' + arrCleaned[x]);
-				
-				//If a duplicate item is found
-				if (origArr[i] === arrCleaned[x]) {
-					
-					//Indicate that it is a duplicate 
-              		found = true;
-              		break;
-              		
-            	}
-            	
-        	}
-        	
-        	//If an item is not a duplicate
-        	if (!found){
-        		
-        		//Add it to the cleaned array
-        		arrCleaned.push(origArr[i]);
-        		
-        	}     
-        	
-		}
+		console.log(myMap.markers[i].layerId.replace(/ /g,''));
+		console.log(myMap.markers[i].layerId + ' vs ' + e.currentTarget.id);
 		
-		//Return the cleaned array
-   		return arrCleaned;
-   		
-	};
-	
-	mapManager.prototype.getLayer = function(program){
-		
-		//Category grouping definition. This is implimentation specific and shouldn't be here.
-		var categoryFix = {
-			Roads_and_carparks: [
-				"Traffic Engineering",
-				"Traffic Management",
-				"Developer Traffic Contributiions",
-				"Carparks in Reserves",
-				"Shire Entry Signs",
-				"Bridge Maintenance",
-				"Carpark Construction",
-				"Menai Road Landscaping",
-				"Roads Construction",
-				"Regional Roads",
-				"Roads to Recovery"
-				
-			],
-			Drainage_and_water: [
-				"Drainage Construction",
-				"Stormwater Mtce",
-				"Stormwater Re",
-				"Water Quality",
-				"Waterways Projects"
-			],
-			Footpaths_and_cycleways:[
-				"Cycleways Construction",
-				"Shopping Centre Upgrades",
-				"Disabled Access Works",
-				"Pavement Rehabilitation",
-				"Footpath Program"
-			],
-			Parks_and_playgrounds:[
-				"Playground Equipment",
-				"Parks Capital",
-				"Netball Courts",
-				"Tennis Courts",
-				"Sporting Facilities"
-			],
-			Council_buildings:[
-				"Art Galleries",
-				"Buildings on Ovals",
-				"Buildings on Passive Reserves",
-				"Community Halls",
-				"Golf Driving Range",
-				"Leisure Facilities",
-				"Depots",
-				"Malls Management",
-				"Scout Halls"
-			],
-			Public_toilets:[
-				"Public Toilets",
-				"Public Toilets"
-			],
-			Test:[
-				"Test"
-			],
-			other:[
-				"Works in Conjunction",
-				"Preventative Maintenance",
-				"Community Leases",
-				"Emergency Services",
-				"Lucas Heights Projects",
-				"WASIP JOBS",
-				"Green Hills Development"
-			]	
+        //Identify markers that match the layer button clicked
+        if (myMap.markers[i].layerId.replace(/ /g,'') == e.currentTarget.id){
+          
+          //Check if visible or not and toggle.
+          if(myMap.markers[i].marker.visible){
+          	
+            myMap.markers[i].marker.setVisible(false);
+            
+          }else{
+          	
+            myMap.markers[i].marker.setVisible(true);
+            
+          }
+          
+          console.log(myMap.markers[i].marker.visible);
+          console.log(myMap.markers[i].marker);
+        }
+        
+      }
+      
+      return false;
+      
+      });	
 			
-		},
-		i, o, key;
+		});
 		
-		//Loop through every category grouping array
-		for(key in categoryFix){
-			
-			//Loop through the contents of the array
-			for (i=0, o=categoryFix[key].length; i<o; i+=1){
-				
-				//Identify the category the provided program belongs to	
-				if (categoryFix[key][i] === program){
-					
-					//Return the name of the grouping (with spaces intact)
-					return(key.replace(/\_/g,' '));
-					
-				}
-				
-			}
 		
-		}
-		
-		//If no matching category is found, return other
-		return('other');
-		
-	};
+
+		//Tests
+		//console.log(test.getLayer("Tennis Courts"));
+		//console.log(test.unique(["first", "first", "second", "second", "third", "third"]));
 	
-		
-	var test = mapManager(document.createElement('div'),{rssUrl:'hamBone'});
-	
-	console.log(test.mapProperties);
-	
-	//console.log(test);
-	//Tests
-	//console.log(test.getLayer("Tennis Courts"));
-	//console.log(test.unique(["first", "first", "second", "second", "third", "third"]));
-	
-</script>	
+	</script>	
 </body>	
 </html>
