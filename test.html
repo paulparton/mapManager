@@ -1,128 +1,140 @@
 <html>
-<head>
-	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-	<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
-	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
-	<script src="js/mapManager.js"></script>
-	<script src="js/bootstrap.js"></script>
-	    <link href="css/bootstrap.css" rel="stylesheet">
-    <style type="text/css">
-      body {
-        padding-top: 60px;
-        padding-bottom: 40px;
-      }
-      
-    </style>
-    <link href="css/bootstrap-responsive.css" rel="stylesheet">
-    
-	<style>
-		ul {
-			list-style-type: none;
-			padding: 5px;
-			margin: 0px;
-		}
-	</style>
+	<head>
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="http://underscorejs.org/underscore-min.js"></script>
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+		<script src="js/mapManager.js"></script>
+		<script src="js/utils.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<link href="css/bootstrap.css" rel="stylesheet">
+		<style type="text/css">
+			body {
+				padding-top: 60px;
+				padding-bottom: 40px;
+			}
 
-</head>
-<body>	
+		</style>
+		<link href="css/bootstrap-responsive.css" rel="stylesheet">
 
-<div class="container">
-	<div class="row">
-		<div class='span4'>
-			<div id='layerBarContainer' style='width:100%;background-color:#f1f1f1'></div>
-		</div>	
-		<div class='span8'>
-			<div id='mapContainer' style='width:600px;height:300px;'></div>
+		<style>
+			ul {
+				list-style-type: none;
+				padding: 5px;
+				margin: 0px;
+			}
+		</style>
+
+	</head>
+	<body>
+
+		<div class="container">
+			<div class="row">
+				<div class='span4'>
+					<div id='layerBarContainer' style='width:100%;background-color:#f1f1f1'></div>
+				</div>
+				<div class='span8'>
+					<div id='mapContainer' style='width:600px;height:300px;'></div>
+				</div>
+			</div>
 		</div>
-	</div>
-</div>	
-	<script>	
-	
-		var myMap = mapManager(document.getElementById('mapContainer'),{rssUrl:'http://localhost:8888/sscmapmanager/feed.xml'}, function(){
-			
-			myMap.loadLayerBar(document.getElementById('layerBarContainer'), function(){
-    			
-    			//Show and hide layer list
-                $('.layer_toggle_button').click(function(e){
+		<script>
+			//Load RSS feed and convert it to an array of objects
+			pp.feedToMapData('http://localhost:8888/sscMapManager/feed.xml', {}, function(mapData) {
 
-                    activeList = '#list_' + e.currentTarget.id.replace('container_','');
-					console.log($(activeList));
-					
-                    $(activeList).slideToggle();
+				//Variables
+				var mapContainer, mapBarContainer, mapArgs;
 
-                    return false    
-                    
-                }); 
-                
-                var x;
-				//Hover event of every map_plot_button class link
-     			$('.map_plot_button').hover(function(e){
-  					
-  					
-          			//Use the id of the hovered link to build the id of its 
-          			//corresponding map marker
-          			x = "a" + e.currentTarget.id.replace(/-/g,'') + "marker";
-					
-		         	 //Open the markers info window
-        		  	google.maps.event.trigger(myMap.markers[x].marker, 'click');
-            
-				}, function(e){
-     
-        			//var x = "a" + e.currentTarget.id.replace(/-/g,'') + "marker";
-       				myMap.markers[x].marker.infobox.close();
-       
-       
-     			}); 
-     			 
-			});	
-			
-			    //Click event listener for layer links
-	
-    $('.layer_plot_button').click(function(e){
-		
-		console.log(e.currentTarget.id);
-		
-      //variables
-      var i, x;
-      console.log(myMap.markers);
-      //Loop through all the markers
-      for (i in myMap.markers){
-        
-		console.log(myMap.markers[i].layerId.replace(/ /g,''));
-		console.log(myMap.markers[i].layerId + ' vs ' + e.currentTarget.id);
-		
-        //Identify markers that match the layer button clicked
-        if (myMap.markers[i].layerId.replace(/ /g,'') == e.currentTarget.id){
-          
-          //Check if visible or not and toggle.
-          if(myMap.markers[i].marker.visible){
-          	
-            myMap.markers[i].marker.setVisible(false);
-            
-          }else{
-          	
-            myMap.markers[i].marker.setVisible(true);
-            
-          }
-          
-          console.log(myMap.markers[i].marker.visible);
-          console.log(myMap.markers[i].marker);
-        }
-        
-      }
-      
-      return false;
-      
-      });	
-			
-		});
-		
-		
+				//Map properties
+				mapContainer = document.getElementById('mapContainer');
+				mapBarContainer = document.getElementById('layerBarContainer');
 
-		//Tests
-		//console.log(test.getLayer("Tennis Courts"));
-		//console.log(test.unique(["first", "first", "second", "second", "third", "third"]));
-	
-	</script>	
-</body>	
+				mapArgs = {
+					mapData : mapData,
+					barContainer : mapBarContainer
+				};
+
+				//Create map
+				pp.mapManager(mapContainer, mapArgs, function(myMap) {
+					console.log('here');
+					console.log(myMap);
+
+					myMap.loadLayerBar(document.getElementById('layerBarContainer'), function() {
+						//Show and hide layer list
+						$('.layer_toggle_button').click(function(e) {
+
+							activeList = '#list_' + e.currentTarget.id.replace('container_', '');
+							console.log($(activeList));
+
+							$(activeList).slideToggle();
+
+							return false
+
+						});
+
+						var x;
+						//Hover event of every map_plot_button class link
+						$('.map_plot_button').hover(function(e) {
+
+							//Use the id of the hovered link to build the id of its
+							//corresponding map marker
+							x = "a" + e.currentTarget.id.replace(/-/g, '') + "marker";
+
+							//Open the markers info window
+							google.maps.event.trigger(myMap.markers[x].marker, 'click');
+
+						}, function(e) {
+
+							//var x = "a" + e.currentTarget.id.replace(/-/g,'') + "marker";
+							myMap.markers[x].marker.infobox.close();
+
+						});
+
+					});
+
+					//Click event listener for layer links
+
+					$('.layer_plot_button').click(function(e) {
+
+						console.log(e.currentTarget.id);
+
+						//variables
+						var i, x;
+						console.log(myMap.markers);
+						//Loop through all the markers
+						for (i in myMap.markers) {
+
+							console.log(myMap.markers[i].layerId.replace(/ /g, ''));
+							console.log(myMap.markers[i].layerId + ' vs ' + e.currentTarget.id);
+
+							//Identify markers that match the layer button clicked
+							if (myMap.markers[i].layerId.replace(/ /g, '') == e.currentTarget.id) {
+
+								//Check if visible or not and toggle.
+								if (myMap.markers[i].marker.visible) {
+
+									myMap.markers[i].marker.setVisible(false);
+
+								} else {
+
+									myMap.markers[i].marker.setVisible(true);
+
+								}
+
+								console.log(myMap.markers[i].marker.visible);
+								console.log(myMap.markers[i].marker);
+							}
+
+						}
+
+						return false;
+
+					});
+				});
+
+			});
+
+
+		</script>
+	</body>
 </html>

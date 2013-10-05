@@ -1,6 +1,11 @@
 'use strict';
 
-var mapManager = function(mapContainer, args, callback){
+//If namespace has already been created use it, otherwise create it.
+if(!pp){
+	var pp = {};
+}
+
+pp.mapManager = function(mapContainer, args, callback){
     
     /**
      * Set up object
@@ -17,8 +22,8 @@ var mapManager = function(mapContainer, args, callback){
     }
     
     //Remove the need to use the new keyword
-    if(!(this instanceof mapManager)){                  
-        return new mapManager(mapContainer, args, callback);
+    if(!(this instanceof pp.mapManager)){                  
+        return new pp.mapManager(mapContainer, args, callback);
     }
     
     /**
@@ -60,21 +65,25 @@ var mapManager = function(mapContainer, args, callback){
     this.mapProperties.map = this.startMap(this.mapProperties);
     
     //Load markers and layers
-    this.loadMarkers(this.mapProperties, function(mapContents){
+    this.loadMarkers(this.mapProperties.mapData, function(mapContents){
+        
+        //Combine with existing markers and layers
+        this.layers = mapContents.layers;
+        this.markers = mapContents.markers;
         
         //Return callback
-        callback.call(this, mapContents);
+        callback.call(this, this, mapContents);
         
     }); 
             
 };
 
-mapManager.prototype.infoWindow = new google.maps.InfoWindow({
+pp.mapManager.prototype.infoWindow = new google.maps.InfoWindow({
   content:'<p>Default</p>' 
       
     });
   
-    mapManager.prototype.startMap = function(properties){
+    pp.mapManager.prototype.startMap = function(properties){
         
         //Variables
     var mapConfig,
@@ -95,18 +104,25 @@ mapManager.prototype.infoWindow = new google.maps.InfoWindow({
     
 };
 
-mapManager.prototype.createMarker = function(markerProperties){
+pp.mapManager.prototype.createMarker = function(markerProperties){
     
-    var pinColor = '999999',
+    //Variables
+    var pinColor,
         content,
         pinImage,
         pinShadow,
-        marker;
+        marker,
+        key;
     
+    //Default pin color
+   	pinColor = '999999';
+   	
+   	//Get layer colors from color layer color map
     if(this.layerColors[markerProperties.layerId.replace(/ /g,'')]){
         pinColor = this.layerColors[markerProperties.layerId.replace(/ /g,'')].color;
     }
     
+    //Create pin
     pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + pinColor,
         new google.maps.Size(21, 34),
         new google.maps.Point(0, 0),
@@ -116,31 +132,41 @@ mapManager.prototype.createMarker = function(markerProperties){
         new google.maps.Size(40, 37),
         new google.maps.Point(0, 0),
         new google.maps.Point(12, 35));
-
+	
+	//Create marker
     marker = new google.maps.Marker({
         position: markerProperties.latlng,
         map: this.mapProperties.map,
         icon: pinImage,
-        shadow: pinShadow
+        shadow: pinShadow,
+        markerDetail:{
+        	layerId:markerProperties.layerId, 
+        	pageName: markerProperties.pageName, 
+        	marker: marker, 
+        	pageId: markerProperties.pageId
+        }
     });
+
+    this.openInfoWindow.call(this, marker);
     
-    content = markerProperties.pageName;
+    console.log(marker);
     
-    this.openInfoWindow.call(this, marker, content);
-    
-    return({layerId:markerProperties.layerId, pageName: markerProperties.pageName, marker: marker, pageId: markerProperties.pageId});
+    return(marker);
     
     
 };
 
-mapManager.prototype.openInfoWindow = function(marker, content){
+pp.mapManager.prototype.openInfoWindow = function(marker){
     
     var infoWindow = this.infoWindow,
-        mapProperties = this.mapProperties;
+        mapProperties = this.mapProperties,
+        content;
+    
+    content = '<strong>' + marker.markerDetail.pageName +'</strong>' + '<p>Other info here...</p>';
         
     google.maps.event.addListener(marker, 'click', function(){
         
-        infoWindow.content = '<p>' + content + '</p>';
+        infoWindow.content = content;
         
         infoWindow.open(mapProperties.map, marker);
 
@@ -148,105 +174,45 @@ mapManager.prototype.openInfoWindow = function(marker, content){
                 
 
 };
-mapManager.prototype.loadMarkers = function(properties, callback){
+
+//Take marker data and return an object of marker objects
+pp.mapManager.prototype.loadMarkers = function(mapData, callback){
     
     //variables
-    var arrSources,
-        asyncCounter,
-        layers = [],
+    var markerData,
+		marker,
         markers = {},
+		layers = [],
         i, o;
+	
+	layers = mapData.layers;
+	markerData = mapData.markers;
+	
+    //Loop through marker data and create markers
+    for (i=0, o=markerData.length; i<o; i+=1){
 
-    //get map marker sources
-    //arrSources = properties.rssUrl;
+		//Create the marker 
+        marker = this.createMarker.call(this, markerData[i]);
+        
+        console.log(markerData[i]);
+        
+        //Add marker to markers object with unique id as a key
+        markers[markerData[i].id] = marker;
+		                                   
+    }       
+	
+	console.log(markers);
+	
+	//Return markers and layers    
+    callback.call(this, {
+    	layers: layers,
+    	markers: markers
+    });
 
-    //If source is a single object add it to an array               
-    if (properties.rssUrl instanceof Array){
-        
-        arrSources = properties.rssUrl;
-        
-    }else{
-        
-        arrSources = [];
-        arrSources[0] = properties.rssUrl;
-
-    }
-    
-    //Track the number of asyncronous operations completed
-    asyncCounter = 0;
-    
-    //Loop through all the sources
-    for (i=0, o=arrSources.length; i<o; i+=1){
-        
-        this.getSource.call(this, arrSources[i], function(data){
-            
-            var i, 
-                o, 
-                uid, 
-                tempMarker = {}, 
-                objMarker, 
-                returnObj;
-            
-            //Loop through all returned itms
-            for (i=0, o=data.length;i<o;i+=1){
-                
-                //Only process markers that have co-ordinates
-                if($(data[i]).find("lat").text() && $(data[i]).find("lng").text()){
-                
-                    //Use jQuery to get values from the returned xml objects. getSource should return a standard array of objects instead. fix -pp
-                    tempMarker.pageId = $(data[i]).find("id").text();
-                    tempMarker.pageName = $(data[i]).find("title").text();
-                    tempMarker.layerId = this.getLayer($(data[i]).find('program').text());
-                    //tempMarker.layerId = $(data[i]).find('program').text();                           
-                    tempMarker.latlng = new google.maps.LatLng(parseFloat($(data[i]).find("lat").text()),parseFloat($(data[i]).find("lng").text()));
-                    
-                    //Create a unique marker id using the associated page id
-                    uid = "a" + tempMarker.pageId.replace(/-/g, '') + "marker";  
-                     
-                    //Save layer to array
-                    layers.push(tempMarker.layerId);
-                    
-                    //Create the marker add to markers object with unique id as a key
-                    objMarker = this.createMarker.call(this, tempMarker);
-                    
-                    markers[uid] = objMarker;
-                                    
-                }       
-                        
-            }
-
-            //Increment the asyncronous counter
-            asyncCounter+=1;
-            
-            //check if this is the last source
-            if(asyncCounter === arrSources.length){
-                
-                this.markers = markers;
-                this.layers = this.unique(layers);
-                
-                returnObj = {};
-                returnObj.layers = this.unique(layers);
-                returnObj.markers = markers;
-                
-                //Return callback
-                callback.call(this, returnObj);
-                
-            }
-            
-        });
-        
-        
-    }
-    //Loop through all the items
-    
-
-    
-    //..So far no jQuery...include just for $get??
-    
 };
 
 //Combine supplied arguments with defaults
-mapManager.prototype.parseArguments = function(userArgs){
+pp.mapManager.prototype.parseArguments = function(userArgs){
     
     //Variables
     var mapProperties, 
@@ -278,12 +244,12 @@ mapManager.prototype.parseArguments = function(userArgs){
 };
 
 //Default arguments
-mapManager.prototype.defaultArgs = {
+pp.mapManager.prototype.defaultArgs = {
 
     //Default values for optional arguments
     mapLat: -34.08346933637405,
     mapLng: 151.02527617884334,
-    rssUrl: '',
+    mapData: undefined,
     rssMarkers: undefined,
     arrMarkers: undefined,
     mapSize: undefined,
@@ -293,7 +259,7 @@ mapManager.prototype.defaultArgs = {
 
 };
 
-mapManager.prototype.loadLayerBar = function(barContainer, callback){
+pp.mapManager.prototype.loadLayerBar = function(barContainer, callback){
     
     var myMap = this,
         containerList = document.createElement('ul'),
@@ -405,7 +371,7 @@ mapManager.prototype.loadLayerBar = function(barContainer, callback){
  */ 
  
 //Function to get source contents
-mapManager.prototype.getSource = function(sourceURL, callback){
+pp.mapManager.prototype.getSource = function(sourceURL, callback){
     
     //Preserve this to call callback
     var that = this;
@@ -420,7 +386,7 @@ mapManager.prototype.getSource = function(sourceURL, callback){
 };
 
 //Function to remove duplicates from an array
-mapManager.prototype.unique = function(origArr) {
+pp.mapManager.prototype.unique = function(origArr) {
     
     //Variables
     var arrCleaned = [],
@@ -463,7 +429,7 @@ mapManager.prototype.unique = function(origArr) {
     
 };
 
-mapManager.prototype.layerColors = {
+pp.mapManager.prototype.layerColors = {
 
     "Roadsandcarparks":{
         color: '5c5e60'
@@ -490,7 +456,7 @@ mapManager.prototype.layerColors = {
     }
 };
 
-mapManager.prototype.getLayer = function(program){
+pp.mapManager.prototype.getLayer = function(program){
     
     //Category grouping definition. This is implimentation specific and shouldn't be here.
     var categoryFix = {
