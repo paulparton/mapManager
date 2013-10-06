@@ -2,9 +2,9 @@
 A javascript tool for displaying multiple layers of mapping data.  
 
 ##Usage##
-Several arguments can be passed to the map manager to customise your map, the only "required" argument is the container for the map (a div).  While the array of
-marker information objects is optional, the map is pretty pointless with out it. Another recommended argument is the container for a map control panel.
-
+Optional arguments can be passed to the map manager to customise your map, the only "required" argument is the container for the map (a div).  While the mapData object is optional, the map is pretty pointless with out it. Another recommended argument is the container for a map control panel.
+	
+	pp.mapManager(mapContainerDiv, optionalArguments, callback)
 
 	//Variables
 	var mapContainer, mapBarContainer, mapArgs;
@@ -23,6 +23,11 @@ marker information objects is optional, the map is pretty pointless with out it.
 		//Code to run after map has loaded...
 		
 	});
+
+###Currenty supported optional arguments are:
+mapBarContainer - A container for the map controls. Providing the container automatically creates the control panel when the map is loaded.
+colorMap - An object to map a color for each map layer
+mapData - An object containing two arrays (layers and markers) that populates the map
 
 ##Map control panel
 add a map control panel by providing a barContainer when creating the map.
