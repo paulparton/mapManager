@@ -2,16 +2,31 @@
 	<head>
 		<title>Map Manager</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		
+		<!-- Include jQuery -->
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		
+		<!-- Include underscore -->
 		<script src="http://underscorejs.org/underscore-min.js"></script>
+		
+		<!-- Include google maps API -->
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+		
+		<!-- Include the map manager -->
 		<script src="js/mapManager.js"></script>
+		
+		<!-- Include the pp.utils -->
 		<script src="js/utils.js"></script>
+		
+		<!-- Include bootstrap JS / CSS -->
 		<script src="js/bootstrap.min.js"></script>
 		<link href="css/bootstrap.css" rel="stylesheet">
 		<link href="css/bootstrap-responsive.css" rel="stylesheet">
+		
+		<!-- Include custom styles -->
 		<link href="css/mapManager.css" rel="stylesheet">
+		
 	</head>
 	<body>
 	
@@ -20,10 +35,10 @@
 			<hr />					
 			<div class="row">
 				<div class='span4'>
-					<div id='layerBarContainer' style='width:100%;background-color:#f1f1f1'></div>
+					<div id='layerBarContainer'></div>
 				</div>
 				<div class='span8'>
-					<div id='mapContainer' style='width:100%;height:300px;'></div>
+					<div id='mapContainer'></div>
 				</div>
 			</div>
 			<hr />
