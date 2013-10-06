@@ -1,0 +1,24 @@
+body {
+	padding-top: 60px;
+	padding-bottom: 40px;
+}
+ul {
+	list-style-type: none;
+	padding: 5px;
+	margin: 0px;
+}
+.copyright{
+	text-align:center;
+}
+.layerHeading {
+	list-style-type:disc;
+	margin-left:10px;
+}
+.layerHeading li a:link{
+	color: #333333;
+	font-size:0.8em;
+}
+
+.layer_toggle_button:link{
+	
+}

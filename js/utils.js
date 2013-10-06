@@ -28,7 +28,8 @@ pp.feedToMapData = function(sourceUrl, schema, callback){
 		longitude: "lng",
 		id: "id",
 		title: "title",
-		layer: "program"
+		layer: "program",
+		description: "description"
 	};
 	
 	//storeMarker = function(marker){
@@ -47,13 +48,14 @@ pp.feedToMapData = function(sourceUrl, schema, callback){
               
 			//Only process markers that have co-ordinates
             if($(data[i]).find(schema.latitude).text() && $(data[i]).find(schema.longitude).text()){
-            	
-            	tempMarker = {};
-            	
-            	//Get standard value from the feed using the schema field names
+                
+                tempMarker = {};
+
+                //Get standard value from the feed using the schema field names
                 tempMarker.pageId = $(data[i]).find(schema.id).text();
                 tempMarker.pageName = $(data[i]).find(schema.title).text();
-                tempMarker.layerId = $(data[i]).find(schema.layer).text();                       
+                tempMarker.layerId = $(data[i]).find(schema.layer).text();
+                tempMarker.description = $(data[i]).find(schema.description).text();                       
                 tempMarker.latlng = new google.maps.LatLng(parseFloat($(data[i]).find(schema.latitude).text()),parseFloat($(data[i]).find(schema.longitude).text()));
                 
                 //Create a unique marker id using the associated page id

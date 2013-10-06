@@ -1,7 +1,7 @@
 'use strict';
 
 //If namespace has already been created use it, otherwise create it.
-if (!pp) {
+if (typeof pp === 'undefined') {
     var pp = {};
 }
 
@@ -64,23 +64,31 @@ pp.mapManager = function(mapContainer, args, callback) {
     //Launch map
     this.mapProperties.map = this.startMap(this.mapProperties);
 
-    //Load markers and layers
-    this.loadMarkers(this.mapProperties.mapData, function(mapContents) {
-
-        //Combine with existing markers and layers
-        this.layers = mapContents.layers;
-        this.markers = mapContents.markers;
-
-        //Return callback
-        callback.call(this, this, mapContents);
-
-    });
-
+    
+        //Load markers and layers
+        this.loadMarkers(this.mapProperties.mapData, function(mapContents) {
+    
+            //Combine with existing markers and layers
+            this.layers = mapContents.layers;
+            this.markers = mapContents.markers;
+            
+            //If a controller bar container has been provided
+            if (this.mapProperties.barContainer){
+                
+                //Launch the map controller bar
+                this.loadLayerBar.call(this,this.mapProperties.barContainer);
+                    
+            }
+            
+            //Return callback
+            callback.call(this, this, mapContents);
+    
+        });
+    
 };
 
 pp.mapManager.prototype.infoWindow = new google.maps.InfoWindow({
     content : '<p>Default</p>'
-
 });
 
 pp.mapManager.prototype.startMap = function(properties) {
@@ -131,14 +139,13 @@ pp.mapManager.prototype.createMarker = function(markerProperties) {
             infobox : this.infoWindow,
             layerId : markerProperties.layerId,
             pageName : markerProperties.pageName,
+            description : markerProperties.description,
             marker : marker,
             pageId : markerProperties.pageId
         }
     });
 
     this.openInfoWindow.call(this, marker);
-
-    console.log(marker);
 
     return (marker);
 
@@ -148,7 +155,7 @@ pp.mapManager.prototype.openInfoWindow = function(marker) {
 
     var infoWindow = this.infoWindow, mapProperties = this.mapProperties, content;
 
-    content = '<strong>' + marker.markerDetail.pageName + '</strong>' + '<p>Other info here...</p>';
+    content = '<strong>' + marker.markerDetail.pageName + '</strong>' + '<p>' + marker.markerDetail.description + '</p>';
 
     google.maps.event.addListener(marker, 'click', function() {
 
@@ -171,11 +178,9 @@ pp.mapManager.prototype.loadMarkers = function(mapData, callback) {
 
     //Loop through marker data and create markers
     for ( i = 0, o = markerData.length; i < o; i += 1) {
-
+        
         //Create the marker
         marker = this.createMarker.call(this, markerData[i]);
-
-        console.log(markerData[i]);
 
         //Add marker to markers object with unique id as a key
         markers[markerData[i].id] = marker;
