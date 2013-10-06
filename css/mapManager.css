@@ -18,7 +18,14 @@ ul {
 	color: #333333;
 	font-size:0.8em;
 }
+.layer_plot_button:link{
+	line-height:40px;
+}
 
 .layer_toggle_button:link{
-	
+	line-height:40px;
 }
+
+.mapBarContainer li, .layerHeading li { background: #f1f1f1; }
+.mapBarContainer li:nth-child(odd) { background: #FFFFFF; }
+.layerContainer li { background: none !important; }

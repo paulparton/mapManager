@@ -9,10 +9,21 @@ if(!pp){
 	var pp = {};
 }
 
+pp.utils = {};
+
+/**
+ * Generates a random color
+ */
+pp.utils.randomColor = function(){
+	
+	//Return a random color
+	return((0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6));
+	
+};
 /**
  * Accepts an rss feed URL and converts it into an array of objects for map data
  */
-pp.feedToMapData = function(sourceUrl, schema, callback){
+pp.utils.feedToMapData = function(sourceUrl, schema, callback){
 	//To do - process an optional schema to map feed data to map data objects	
 	
 	var i, o,
@@ -23,6 +34,7 @@ pp.feedToMapData = function(sourceUrl, schema, callback){
 	    storeMarker,
 	    schema;
 	
+
 	schema = {
 		latitude: "lat",
 		longitude: "lng",
@@ -32,11 +44,6 @@ pp.feedToMapData = function(sourceUrl, schema, callback){
 		description: "description"
 	};
 	
-	//storeMarker = function(marker){
-		
-		//markers.push(marker);
-		
-	//};
 	//Connect to url
 	$.get(sourceUrl, {}, function(response) {
 	 	
@@ -52,14 +59,14 @@ pp.feedToMapData = function(sourceUrl, schema, callback){
                 tempMarker = {};
 
                 //Get standard value from the feed using the schema field names
-                tempMarker.pageId = $(data[i]).find(schema.id).text();
+                tempMarker.id = $(data[i]).find(schema.id).text();
                 tempMarker.pageName = $(data[i]).find(schema.title).text();
                 tempMarker.layerId = $(data[i]).find(schema.layer).text();
                 tempMarker.description = $(data[i]).find(schema.description).text();                       
                 tempMarker.latlng = new google.maps.LatLng(parseFloat($(data[i]).find(schema.latitude).text()),parseFloat($(data[i]).find(schema.longitude).text()));
                 
                 //Create a unique marker id using the associated page id
-                tempMarker.id = "a" + tempMarker.pageId.replace(/-/g, '') + "marker";  
+                tempMarker.id = "a" + tempMarker.id.replace(/-/g, '') + "marker";  
                  
                 //Store layer in array
                 layers.push(tempMarker.layerId);

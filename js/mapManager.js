@@ -5,6 +5,12 @@ if (typeof pp === 'undefined') {
     var pp = {};
 }
 
+/**
+ * mapManager
+ * -I wrote this using a constructor pattern and tried to avoid:
+ * ---A need to use the "new" keyword
+ * ---The use of "that = this" (forced to use it when using google maps methods)
+ */
 pp.mapManager = function(mapContainer, args, callback) {
 
     /**
@@ -32,6 +38,10 @@ pp.mapManager = function(mapContainer, args, callback) {
 
     //Add map container to arguments
     args.mapContainer = mapContainer;
+	
+	this.infoWindow = new google.maps.InfoWindow({
+    	content : '<p>Default</p>'
+	});
 
     //Calculate default map dimensions from container
     this.defaultArgs.containerSize = {
@@ -60,36 +70,33 @@ pp.mapManager = function(mapContainer, args, callback) {
     /**
      * Create the map and markers
      */
-
+	this.layers = [];
     //Launch map
     this.mapProperties.map = this.startMap(this.mapProperties);
 
     
         //Load markers and layers
-        this.loadMarkers(this.mapProperties.mapData, function(mapContents) {
+        this.loadMarkers.call(this, this.mapProperties.mapData, function(mapContents) {
     
             //Combine with existing markers and layers
-            this.layers = mapContents.layers;
-            this.markers = mapContents.markers;
-            
-            //If a controller bar container has been provided
+            //this.layers = mapContents.layers;
+            this.markers = mapContents.markers;  
+ 
+        });
+		
+		//If a controller bar container has been provided
             if (this.mapProperties.barContainer){
                 
                 //Launch the map controller bar
-                this.loadLayerBar.call(this,this.mapProperties.barContainer);
+                this.loadLayerBar.call(this,this.mapProperties.barContainer, function(){
+                	
+                });
                     
             }
-            
-            //Return callback
-            callback.call(this, this, mapContents);
-    
-        });
-    
+		//Return callback
+		callback.call(this, this);
+		
 };
-
-pp.mapManager.prototype.infoWindow = new google.maps.InfoWindow({
-    content : '<p>Default</p>'
-});
 
 pp.mapManager.prototype.startMap = function(properties) {
 
@@ -114,15 +121,42 @@ pp.mapManager.prototype.startMap = function(properties) {
 pp.mapManager.prototype.createMarker = function(markerProperties) {
 
     //Variables
-    var pinColor, content, pinImage, pinShadow, marker, key;
+    var pinColor, content, pinImage, pinShadow, marker, key, layerId;
 
     //Default pin color
     pinColor = '999999';
+	
+	layerId = markerProperties.layerId.replace(/ /g,'');
+	
+	//If this layer hasn't already been assigned a color
+	if(!this.layers[layerId].color){
+		
+		//If the user has included a color map
+		if(this.mapProperties.colorMap){
 
-    //Get layer colors from color layer color map
-    if (this.layerColors[markerProperties.layerId.replace(/ /g, '')]) {
-        pinColor = this.layerColors[markerProperties.layerId.replace(/ /g, '')].color;
-    }
+			//locate a color for the layer
+			if (this.mapProperties.colorMap[layerId]){
+
+				//Apply the assigned color
+				this.layers[layerId].color = this.mapProperties.colorMap[layerId];
+			
+			}else{
+				
+				//if none exists assign a random color for this layer
+				this.layers[layerId].color = pp.utils.randomColor();
+													
+			}
+		
+		}else{
+			
+			//assign a random color for this layer
+			this.layers[layerId].color = pp.utils.randomColor();
+			
+		}
+		
+	}
+	
+	pinColor = this.layers[layerId].color;
 
     //Create pin
     pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + pinColor, new google.maps.Size(21, 34), new google.maps.Point(0, 0), new google.maps.Point(10, 34));
@@ -141,7 +175,7 @@ pp.mapManager.prototype.createMarker = function(markerProperties) {
             pageName : markerProperties.pageName,
             description : markerProperties.description,
             marker : marker,
-            pageId : markerProperties.pageId
+            id : markerProperties.id
         }
     });
 
@@ -167,13 +201,32 @@ pp.mapManager.prototype.openInfoWindow = function(marker) {
 
 };
 
+pp.mapManager.prototype.loadLayers = function(layers){
+	
+	var key, i, o;
+	
+	//Loop through the array of layer names 
+	for (i=0, o=layers.length;i<o;i+=1){
+		console.log(this);
+		
+		this.layers[layers[i].replace(/ /g,'')] = {};
+		
+		//Create a layer object
+		this.layers[layers[i].replace(/ /g,'')].name = layers[i];		
+			
+	}
+	
+};
+
 //Take marker data and return an object of marker objects
 pp.mapManager.prototype.loadMarkers = function(mapData, callback) {
 
     //variables
     var markerData, marker, markers = {}, layers = [], i, o;
 
-    layers = mapData.layers;
+    //this.layers = mapData.layers;
+    this.loadLayers.call(this, mapData.layers);
+    
     markerData = mapData.markers;
 
     //Loop through marker data and create markers
@@ -183,7 +236,7 @@ pp.mapManager.prototype.loadMarkers = function(mapData, callback) {
         marker = this.createMarker.call(this, markerData[i]);
 
         //Add marker to markers object with unique id as a key
-        markers[markerData[i].id] = marker;
+        markers['a' + markerData[i].id.replace(/ /g,'') + 'marker'] = marker;
 
     }
 
@@ -271,7 +324,10 @@ pp.mapManager.prototype.loadLayerBar = function(barContainer, callback) {
 
                 //Use the id of the hovered link to build the id of its corresponding map marker
                 x = "a" + e.currentTarget.id.replace(/-/g, '') + "marker";
-
+			
+				
+				//x = e.currentTarget.id;
+				
                 //Open the markers info window
                 google.maps.event.trigger(that.markers[x], 'click');
 
@@ -325,17 +381,26 @@ pp.mapManager.prototype.loadLayerBar = function(barContainer, callback) {
 
     //Create the root element
     containerList = document.createElement('ul');
-
+	containerList.className='mapBarContainer';
+	
     //Add root element to the container element
     $(barContainer).append($(containerList));
+	
+	console.log('here first');
+	console.log(this.layers);
 
     //Loop through every marker
-    for ( y = 0, z = this.layers.length; y < z; y += 1) {
-
+    
+    for ( y in this.layers) {
+    	 
+    	console.log('here');
+    	
+		console.log(this.layers[y]);
+		
         htmlElements = {};
 
         //remove the spaces from the layer name to use as an id
-        layerName = this.layers[y].replace(/ /g, '');
+        layerName = this.layers[y].name.replace(/ /g, '');
 
         //Create list item to hold this layer
         htmlElements.liLayer = document.createElement('li');
@@ -364,7 +429,8 @@ pp.mapManager.prototype.loadLayerBar = function(barContainer, callback) {
         htmlElements.toggleLayerLink.className = "layer_toggle_button";
         htmlElements.toggleLayerLink.id = layerName;
         htmlElements.toggleLayerLink.href = "#";
-        htmlElements.toggleLayerLinkText = document.createTextNode(this.layers[y]);
+        htmlElements.toggleLayerLinkText = document.createTextNode(this.layers[y].name);
+        var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + this.layers[y].color, new google.maps.Size(21, 34), new google.maps.Point(0, 0), new google.maps.Point(10, 34));
         htmlElements.toggleLayerLink.appendChild(htmlElements.toggleLayerLinkText);
 
         //Link that hides and shows this layers markers on the map
@@ -378,6 +444,8 @@ pp.mapManager.prototype.loadLayerBar = function(barContainer, callback) {
         $(htmlElements.togglePinsLink).css('vertical-align', 'text-top');
 
         //Add layer controls to the layer list
+        $(htmlElements.liControls).append('<img src="' + pinImage.url + '" />&nbsp;');
+        
         $(htmlElements.liControls).append($(htmlElements.toggleLayerLink));
         $(htmlElements.liControls).append($(htmlElements.togglePinsLink));
 
@@ -393,21 +461,21 @@ pp.mapManager.prototype.loadLayerBar = function(barContainer, callback) {
 
             if (this.markers.hasOwnProperty(i)) {
 
-                if (this.markers[i].markerDetail.layerId === this.layers[y]) {
+                if (this.markers[i].markerDetail.layerId === this.layers[y].name) {
 
                     //Create li to hold link
                     htmlElements.liMarkerLink = '';
                     htmlElements.liMarkerLink = document.createElement('li');
-                    htmlElements.liMarkerLink.className = this.layers[y].replace(/ /g, '');
+                    htmlElements.liMarkerLink.className = this.layers[y].name.replace(/ /g, '');
 
                     //Create link element
-                    htmlElements.markerLinks[this.markers[i].markerDetail.pageId] = document.createElement('a');
-                    htmlElements.markerLinks[this.markers[i].markerDetail.pageId].href = '#';
-                    htmlElements.markerLinks[this.markers[i].markerDetail.pageId].appendChild(document.createTextNode(this.markers[i].markerDetail.pageName));
-                    htmlElements.markerLinks[this.markers[i].markerDetail.pageId].id = this.markers[i].markerDetail.pageId;
-                    htmlElements.markerLinks[this.markers[i].markerDetail.pageId].className = 'map_plot_button';
+                    htmlElements.markerLinks[this.markers[i].markerDetail.id] = document.createElement('a');
+                    htmlElements.markerLinks[this.markers[i].markerDetail.id].href = '#';
+                    htmlElements.markerLinks[this.markers[i].markerDetail.id].appendChild(document.createTextNode(this.markers[i].markerDetail.pageName));
+                    htmlElements.markerLinks[this.markers[i].markerDetail.id].id = this.markers[i].markerDetail.id;
+                    htmlElements.markerLinks[this.markers[i].markerDetail.id].className = 'map_plot_button';
 
-                    $(htmlElements.liMarkerLink).append(htmlElements.markerLinks[this.markers[i].markerDetail.pageId]);
+                    $(htmlElements.liMarkerLink).append(htmlElements.markerLinks[this.markers[i].markerDetail.id]);
 
                     //Create a link. This will open the infoBox on hover
                     $(htmlElements.markerList).append(htmlElements.liMarkerLink);
@@ -433,61 +501,6 @@ pp.mapManager.prototype.loadLayerBar = function(barContainer, callback) {
  * General reusable functions
  */
 
-//Function to get source contents
-pp.mapManager.prototype.getSource = function(sourceURL, callback) {
-
-    //Preserve this to call callback
-    var that = this;
-
-    $.get(sourceURL, {}, function(data) {
-
-        //This is implimentation specific. Fix -pp
-        callback.call(that, $(data).find('project'));
-
-    });
-
-};
-
-//Function to remove duplicates from an array
-pp.mapManager.prototype.unique = function(origArr) {
-
-    //Variables
-    var arrCleaned = [], found, i, o, x, y;
-
-    //Loop through array to be cleaned
-    for ( i = 0, o = origArr.length; i < o; i += 1) {
-
-        //Reset testing variable
-        found = undefined;
-
-        //Compare each item to the cleaned array
-        for ( x = 0, y = arrCleaned.length; x < y; x += 1) {
-
-            //If a duplicate item is found
-            if (origArr[i] === arrCleaned[x]) {
-
-                //Indicate that it is a duplicate
-                found = true;
-                break;
-
-            }
-
-        }
-
-        //If an item is not a duplicate
-        if (!found) {
-
-            //Add it to the cleaned array
-            arrCleaned.push(origArr[i]);
-
-        }
-
-    }
-
-    //Return the cleaned array
-    return arrCleaned;
-
-};
 
 pp.mapManager.prototype.layerColors = {
 

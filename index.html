@@ -35,7 +35,7 @@
 
 		<script>
             //Load feed and convert it to map data objects
-            pp.feedToMapData('http://localhost:8888/sscMapManager/feed.xml', {}, function(mapData) {
+            pp.utils.feedToMapData('http://localhost:8888/sscMapManager/feed.xml', {}, function(mapData) {
 
                 //Variables
                 var mapContainer, mapBarContainer, mapArgs;
@@ -45,16 +45,17 @@
                 mapBarContainer = document.getElementById('layerBarContainer');
                 mapArgs = {
                     mapData : mapData,
-                    barContainer : mapBarContainer
+                    barContainer : mapBarContainer,
+   
                 };
 
                 //Create map
                 pp.mapManager(mapContainer, mapArgs, function(myMap) {
 
                     //Dispay map / layer controls
-                    myMap.loadLayerBar(document.getElementById('layerBarContainer'), function() {
+                    //myMap.loadLayerBar(document.getElementById('layerBarContainer'), function() {
 
-                    });
+                    //});
 
                 });
 
