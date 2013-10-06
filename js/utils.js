@@ -45,6 +45,7 @@ pp.utils.feedToMapData = function(sourceUrl, callback, schema){
 	
 	if(typeof schema === 'undefined'){
 		var schema = defaultSchema;
+		alert('DEFAULT!!');
 	}
 	
 	//Connect to url
@@ -63,8 +64,8 @@ pp.utils.feedToMapData = function(sourceUrl, callback, schema){
 
                 //Get standard value from the feed using the schema field names
                 tempMarker.id = $(data[i]).find(schema.id).text();
-                tempMarker.pageName = $(data[i]).find(schema.title).text();
-                tempMarker.layerId = $(data[i]).find(schema.layer).text();
+                tempMarker.title = $(data[i]).find(schema.title).text();
+                tempMarker.layer = $(data[i]).find(schema.layer).text();
                 tempMarker.description = $(data[i]).find(schema.description).text();                       
                 tempMarker.latlng = new google.maps.LatLng(parseFloat($(data[i]).find(schema.latitude).text()),parseFloat($(data[i]).find(schema.longitude).text()));
                 
@@ -72,7 +73,7 @@ pp.utils.feedToMapData = function(sourceUrl, callback, schema){
                 tempMarker.id = "a" + tempMarker.id.replace(/-/g, '') + "marker";  
                  
                 //Store layer in array
-                layers.push(tempMarker.layerId);
+                layers.push(tempMarker.layer);
                 
                 //Store marker in array             
                 markers.push(tempMarker);
