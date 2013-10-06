@@ -23,7 +23,7 @@ pp.utils.randomColor = function(){
 /**
  * Accepts an rss feed URL and converts it into an array of objects for map data
  */
-pp.utils.feedToMapData = function(sourceUrl, schema, callback){
+pp.utils.feedToMapData = function(sourceUrl, callback, schema){
 	//To do - process an optional schema to map feed data to map data objects	
 	
 	var i, o,
@@ -32,17 +32,20 @@ pp.utils.feedToMapData = function(sourceUrl, schema, callback){
 	    tempMarker = {},
 	    returnObj,
 	    storeMarker,
-	    schema;
-	
-
-	schema = {
+	    defaultSchema;
+	    
+	defaultSchema = {
 		latitude: "lat",
 		longitude: "lng",
 		id: "id",
 		title: "title",
-		layer: "program",
+		layer: "layer",
 		description: "description"
 	};
+	
+	if(typeof schema === 'undefined'){
+		var schema = defaultSchema;
+	}
 	
 	//Connect to url
 	$.get(sourceUrl, {}, function(response) {
