@@ -20,6 +20,9 @@ Optional arguments can be passed to the map manager to customise your map, the o
 	mapArgs = {
 		mapData : mapData,
 		barContainer : mapBarContainer,
+    	mapLat: -34.08346933637405,
+		mapLng: 151.02527617884334,
+		zoom:11		
 	};
 
 	//Create map
@@ -31,8 +34,14 @@ Optional arguments can be passed to the map manager to customise your map, the o
 
 ###Currenty supported optional arguments are:
 mapBarContainer - A container for the map controls. Providing the container automatically creates the control panel when the map is loaded.
+
 colorMap - An object to map a color for each map layer
+
 mapData - An object containing two arrays (layers and markers) that populates the map
+
+mapLat / mapLng - The map location
+
+zoom - The maps zoom
 
 ##Map control panel
 add a map control panel by providing a barContainer when creating the map.

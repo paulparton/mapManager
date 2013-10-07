@@ -40,7 +40,7 @@ pp.mapManager = function(mapContainer, args, callback) {
     args.mapContainer = mapContainer;
 	
 	this.infoWindow = new google.maps.InfoWindow({
-    	content : '<p>Default</p>'
+        content : '<p>Default</p>'
 	});
 
     //Calculate default map dimensions from container
@@ -298,6 +298,7 @@ pp.mapManager.prototype.defaultArgs = {
     //Default values for optional arguments
     mapLat : -34.08346933637405,
     mapLng : 151.02527617884334,
+    zoom: 11,
     mapData : undefined,
     rssMarkers : undefined,
     arrMarkers : undefined,
