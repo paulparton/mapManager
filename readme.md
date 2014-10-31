@@ -2,7 +2,7 @@
 A javascript tool for displaying multiple layers of mapping data.  
 
 ##Demo##
-A demo is available at <a href='www.paulparton.com/mapManager' target='_blank'>www.paulparton.com/mapManager</a>
+A demo is available at <a href='http://www.paulparton.com/mapManager' target='_blank'>www.paulparton.com/mapManager</a>
 
 ##Usage##
 Optional arguments can be passed to the map manager to customise your map, the only "required" argument is the container for the map (a div).  While the mapData object is optional, the map is pretty pointless with out it. Another recommended argument is the container for a map control panel.
